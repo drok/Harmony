@@ -228,7 +228,7 @@ namespace HarmonyLib
 			return current
 				.Concat(
 					add
-						.Where(method => method != null)
+						.Where(method => method != null && method.method != null)
 						.Select((method, i) => new Patch(method, i + initialIndex, owner))
 				)
 				.ToArray();
