@@ -37,6 +37,11 @@ namespace HarmonyLib
 						break;
 				}
 			}
+			public override string ToString()
+			{
+				return "patch to " + original.FullDescription();
+
+			}
 		}
 
 		internal Dictionary<MethodBase, Job> state = new Dictionary<MethodBase, Job>();
