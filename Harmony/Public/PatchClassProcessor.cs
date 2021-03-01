@@ -95,7 +95,8 @@ namespace HarmonyLib
 			}
 
 			RunMethod<HarmonyCleanup>(ref exception, exception);
-			ReportException(exception, lastOriginal);
+			if (exception != null)
+				ReportException(exception, lastOriginal);
 			return replacements;
 		}
 
@@ -189,7 +190,7 @@ namespace HarmonyLib
 					}
 					catch (Exception ex)
 					{
-						exception = ex;
+						exception = new HarmonyUserException(instance, $"While processing patch Job {job.ToString()}", ex);
 					}
 				}
 			}
@@ -253,8 +254,7 @@ namespace HarmonyLib
 				FileLog.Log(exStr.Trim());
 			}
 
-			if (exception is HarmonyException) throw exception; // assume HarmonyException already wraps the actual exception
-			throw new HarmonyException($"Patching exception in method {original.FullDescription()}", exception);
+			throw new HarmonyUserException(instance, $"Unable to patch '{original.FullDescription()}'", exception);
 		}
 
 		T RunMethod<S, T>(T defaultIfNotExisting, T defaultIfFailing, Func<T, string> failOnResult = null, params object[] parameters)
