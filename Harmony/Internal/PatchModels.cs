@@ -102,7 +102,7 @@ namespace HarmonyLib
 
 			var harmonyAttributeName = typeof(HarmonyAttribute).FullName;
 			var list = allAttributes
-				.Where(attr => attr.GetType().BaseType.FullName == harmonyAttributeName)
+				.Where(attr => HarmonyAttribute.IsActionable(attr))
 				.Select(attr =>
 				{
 					var f_info = AccessTools.Field(attr.GetType(), nameof(HarmonyAttribute.info));
