@@ -104,7 +104,7 @@ namespace HarmonyLib
 				throw new ArgumentException("Patch method " + patch.FullDescription() + " must be static");
 
 			var list = allAttributes
-				.Where(attr => attr.GetType().BaseType.FullName == harmonyAttributeName)
+				.Where(attr => HarmonyAttribute.IsActionable(attr))
 				.Select(attr =>
 				{
 					var f_info = AccessTools.Field(attr.GetType(), nameof(HarmonyAttribute.info));

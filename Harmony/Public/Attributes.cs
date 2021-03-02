@@ -102,6 +102,25 @@ namespace HarmonyLib
 	{
 		/// <summary>The common information for all attributes</summary>
 		public HarmonyMethod info = new HarmonyMethod();
+
+		/// <summary>Checks if an attribute is an actionable HarmonyAttribute, but not the base HarmonyAttribute</summary>
+		/// <param name="attr">The attribute object to check</param>
+		/// <returns>true if the attribute is actionable</returns>
+		/// <remarks>This can distinguish betwwen attributes derived directly from
+		/// HarmonyAttribute (returns false, ie non-actionable) and attributes derived
+		/// from one of the actionable attributes (returns true)</remarks>
+		///
+
+		internal static bool IsActionable(object attr)
+		{
+			return attr is HarmonyPatch ||
+						attr is HarmonyReversePatch ||
+						attr is HarmonyPatchAll ||
+						attr is HarmonyPriority ||
+						attr is HarmonyBefore ||
+						attr is HarmonyAfter ||
+						attr is HarmonyDebug;
+		}
 	}
 
 	/// <summary>Annotation to define your Harmony patch methods</summary>
