@@ -85,12 +85,27 @@ namespace HarmonyLib
 		public override string ToString()
 		{
 			var list = new List<string>();
-			foreach (var label in labels)
-				list.Add($"Label{label.GetHashCode()}");
-			foreach (var block in blocks)
-				list.Add($"EX_{block.blockType.ToString().Replace("Block", "")}");
+			if (labels != null)
+			{
+				foreach (var label in labels)
+					list.Add($"Label{label.GetHashCode()}");
+			} else
+			{
+				/* because a null label list doesn't mean the same as an empty list */
+				list.Add("*null label list*");
+			}
+			if (blocks != null)
+			{
+				foreach (var block in blocks)
+					list.Add($"EX_{block.blockType.ToString().Replace("Block", "")}");
+			}
+			else
+			{
+				/* because a null block list doesn't mean the same as an empty list */
+				list.Add("*null blocks list*");
+			}
 
-			var extras = list.Count > 0 ? $" [{string.Join(", ", list.ToArray())}]" : "";
+			var extras = list.Count > 0 ? $" [{string.Join(", ", list.ToArray())}]" : string.Empty;
 			var operandStr = Emitter.FormatArgument(operand);
 			if (operandStr.Length > 0) operandStr = " " + operandStr;
 			return opcode + operandStr + extras;
