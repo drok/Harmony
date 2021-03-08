@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net35</TargetFrameworks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Product>CitiesHarmony.Harmony</Product>
+		<Company>boformer</Company>
+		<Copyright>Copyright © 2021</Copyright>
+		<Description>
+			This package should not be referenced directly, instead install the CitiesHarmony.API package!
+			Cities: Skylines-compatible fork of the non-destructive patch library for .NET and Mono modules
+		</Description>
+		<PackageId>CitiesHarmony.Harmony</PackageId>
+		<Authors>Andreas Pardeike,boformer</Authors>
+		<AssemblyName>CitiesHarmony.Harmony</AssemblyName>
+		<Version>2.0.4.0</Version>
+		<PackageVersion>2.0.4.0</PackageVersion>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/boformer/CitiesHarmony</PackageProjectUrl>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageTags>Harmony,Mono,Patch,Patching,Runtime,Detour,Detours,Aspect,Aspects</PackageTags>
+		<AssemblyVersion>2.0.4.0</AssemblyVersion>
+		<FileVersion>2.0.4.0</FileVersion>
+		<PackageIcon>HarmonyLogo.png</PackageIcon>
+		<PackageIconUrl>https://raw.githubusercontent.com/boformer/Harmony/master/HarmonyLogo.png</PackageIconUrl>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<LogFile>obj/docfx-$(TargetFramework).log</LogFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>8.0</LangVersion>
+		<DefaultItemExcludes>$(DefaultItemExcludes);Documentation/**</DefaultItemExcludes>
+		<Configurations>Debug;Release;Beta</Configurations>
+		<DevelopmentDependency>True</DevelopmentDependency>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DelaySign>false</DelaySign>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>Properties\StrongName.pfx</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\HarmonyLogo.png" Pack="true" Visible="false" PackagePath="" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'!='Release'">
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>DEBUG</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<Optimize>true</Optimize>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- https://dev.azure.com/MonoMod/MonoMod/_packaging?_a=feed&feed=DevBuilds -->
+
+		<!-- Reference assemblies are needed for non-Windows .NET Framework targeting builds. -->
+		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
+		<PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" PrivateAssets="all" Condition="'$(TargetFramework)'=='net35'" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\MonoMod.Common\MonoMod.Common.csproj" />
+	</ItemGroup>
+
+</Project>
