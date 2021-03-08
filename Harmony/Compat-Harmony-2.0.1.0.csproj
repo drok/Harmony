@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net35</TargetFrameworks>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<Product>Harmony</Product>
+		<Company>Andreas Pardeike</Company>
+		<Copyright>Copyright © 2016</Copyright>
+		<Description>A general non-destructive patch library for .NET and Mono modules</Description>
+		<PackageId>Lib.Harmony</PackageId>
+		<Authors>Andreas Pardeike</Authors>
+		<AssemblyName>0Harmony</AssemblyName>
+		<Version>2.0.1.0</Version>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/pardeike/Harmony</PackageProjectUrl>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageTags>Harmony,Mono,Patch,Patching,Runtime,Detour,Detours,Aspect,Aspects</PackageTags>
+		<AssemblyVersion>2.0.1.0</AssemblyVersion>
+		<FileVersion>2.0.1.0</FileVersion>
+		<PackageIcon>HarmonyLogo.png</PackageIcon>
+		<PackageIconUrl>https://raw.githubusercontent.com/pardeike/Harmony/master/HarmonyLogo.png</PackageIconUrl>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<LogFile>obj/docfx-$(TargetFramework).log</LogFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>7.3</LangVersion>
+		<DefaultItemExcludes>$(DefaultItemExcludes);Documentation/**</DefaultItemExcludes>
+		<Configurations>Debug;Release;Beta</Configurations>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DelaySign>false</DelaySign>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>Properties\StrongName.pfx</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\HarmonyLogo.png" Pack="true" Visible="false" PackagePath="" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'!='Release'">
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>DEBUG</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<Optimize>true</Optimize>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- https://dev.azure.com/MonoMod/MonoMod/_packaging?_a=feed&feed=DevBuilds -->
+		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
+		<PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" PrivateAssets="all" Condition="'$(TargetFramework)'=='net35'">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\MonoMod.Common\MonoMod.Common.csproj">
+	    <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+	    <Private>false</Private>
+	  </ProjectReference>
+	</ItemGroup>
+
+</Project>
