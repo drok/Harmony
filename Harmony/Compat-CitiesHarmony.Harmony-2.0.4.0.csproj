@@ -29,6 +29,8 @@
 		<LangVersion>8.0</LangVersion>
 		<DefaultItemExcludes>$(DefaultItemExcludes);Documentation/**</DefaultItemExcludes>
 		<Configurations>Debug;Release;Beta</Configurations>
+		<PackageReleaseNotes>Initial release for Cities skylines Harmony mod
+Includes fix for https://github.com/pardeike/Harmony/issues/364</PackageReleaseNotes>
 		<DevelopmentDependency>True</DevelopmentDependency>
 	</PropertyGroup>
 	<PropertyGroup>

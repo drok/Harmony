@@ -1676,7 +1676,7 @@ namespace HarmonyLib
 		/// </summary>
 		static readonly Dictionary<Type, FastInvokeHandler> addHandlerCache = new Dictionary<Type, FastInvokeHandler>();
 
-		static readonly ReaderWriterLockSlim addHandlerCacheLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+		static readonly ReaderWriterLockSlim addHandlerCacheLock = new ReaderWriterLockSlim(IsMonoRuntime ? LockRecursionPolicy.NoRecursion : LockRecursionPolicy.SupportsRecursion);
 
 		/// <summary>Makes a deep copy of any object</summary>
 		/// <typeparam name="T">The type of the instance that should be created</typeparam>
