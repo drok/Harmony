@@ -100,6 +100,7 @@ namespace HarmonyLib
 			var returnType = AccessTools.GetReturnedType(method);
 			if (AccessTools.IsStruct(returnType) == false) return false;
 			if (AccessTools.IsMonoRuntime == false && method.IsStatic) return false;
+			if (AccessTools.IsMonoRuntime && method.IsStatic is false) return false;
 
 			var size = SizeOf(returnType);
 			if (specialSizes.Contains(size))
