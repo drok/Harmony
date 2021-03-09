@@ -42,13 +42,14 @@ Includes fix for https://github.com/pardeike/Harmony/issues/364</PackageReleaseN
 		<Optimize>false</Optimize>
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>
-		<DefineConstants>DEBUG</DefineConstants>
+		<DefineConstants>DEBUG;CURRENT_LIB</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<Optimize>true</Optimize>
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
+		<DefineConstants>CURRENT_LIB</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -64,6 +65,12 @@ Includes fix for https://github.com/pardeike/Harmony/issues/364</PackageReleaseN
 			<Private>false</Private>
 			<CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
 		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="IAmAware">
+	    <HintPath>C:\References\IAmAware-0.0.0.0.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>
