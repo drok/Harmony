@@ -54,6 +54,8 @@ namespace HarmonyLib
 		/// 
 		public HarmonyMethod()
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
 		}
 
 		void ImportMethod(MethodInfo theMethod)
@@ -74,6 +76,9 @@ namespace HarmonyLib
 		{
 			if (method == null)
 				throw new ArgumentNullException(nameof(method));
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
+
 			ImportMethod(method);
 		}
 
@@ -88,6 +93,9 @@ namespace HarmonyLib
 		{
 			if (method == null)
 				throw new ArgumentNullException(nameof(method));
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
+
 			ImportMethod(method);
 			this.priority = priority;
 			this.before = before;
@@ -105,6 +113,9 @@ namespace HarmonyLib
 			var result = AccessTools.Method(methodType, methodName, argumentTypes);
 			if (result == null)
 				throw new ArgumentException($"Cannot not find method for type {methodType} and name {methodName} and parameters {argumentTypes?.Description()}");
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
+
 			ImportMethod(result);
 		}
 

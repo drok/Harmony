@@ -127,6 +127,8 @@ namespace HarmonyLib
 		///
 		public MethodInfo Patch()
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
 			if (original == null)
 				throw new NullReferenceException($"Null method for {instance.Id}");
 
