@@ -10,14 +10,28 @@ namespace HarmonyLib
 	/// 
 	public class Harmony
 	{
+		internal const string HARMONY_IS_DISABLED_MSG = nameof(Harmony) + " is disabled";
+
 		/// <summary>The unique identifier</summary>
 		/// 
 		public string Id { get; private set; }
 
 		/// <summary>Set to true before instantiating Harmony to debug Harmony or use an environment variable to set HARMONY_DEBUG to '1' like this: cmd /C "set HARMONY_DEBUG=1 &amp;&amp; game.exe"</summary>
 		/// <remarks>This is for full debugging. To debug only specific patches, use the <see cref="HarmonyDebug"/> attribute</remarks>
-		/// 
+		///
 		public static bool DEBUG;
+
+		internal static bool? m_enabled;
+
+#if CURRENT_LIB
+		internal static bool Harmony1Patched;
+
+		/* In case an unsupported libs exception is thrown before the mod runs, capture it here
+		 * Regardless which Awareness instance threw it, they all look here for the last thrown
+		 * HarmonyModSupportException
+		 */
+		internal static Exception unsupportedException = null;
+#endif
 
 		/// <summary>Creates a new Harmony instance</summary>
 		/// <param name="id">A unique identifier (you choose your own)</param>
@@ -26,6 +40,9 @@ namespace HarmonyLib
 		public Harmony(string id)
 		{
 			if (string.IsNullOrEmpty(id)) throw new ArgumentException($"{nameof(id)} cannot be null or empty");
+
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
 
 			try
 			{
@@ -65,6 +82,9 @@ namespace HarmonyLib
 		/// 
 		public void PatchAll()
 		{
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			var method = new StackTrace().GetFrame(1).GetMethod();
 			var assembly = method.ReflectedType.Assembly;
 			PatchAll(assembly);
@@ -76,6 +96,9 @@ namespace HarmonyLib
 		///
 		public PatchProcessor CreateProcessor(MethodBase original)
 		{
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return new PatchProcessor(this, original);
 		}
 
@@ -85,6 +108,9 @@ namespace HarmonyLib
 		/// 
 		public PatchClassProcessor CreateClassProcessor(Type type)
 		{
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return new PatchClassProcessor(this, type);
 		}
 
@@ -95,6 +121,9 @@ namespace HarmonyLib
 		///
 		public ReversePatcher CreateReversePatcher(MethodBase original, HarmonyMethod standin)
 		{
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return new ReversePatcher(this, original, standin);
 		}
 
@@ -103,7 +132,10 @@ namespace HarmonyLib
 		/// 
 		public void PatchAll(Assembly assembly)
 		{
-			assembly.GetTypes().Do(type => CreateClassProcessor(type).Patch());
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
+			AccessTools.GetTypesFromAssembly(assembly).Do(type => CreateClassProcessor(type).Patch());
 		}
 
 		/// <summary>Creates patches by manually specifying the methods</summary>
@@ -116,6 +148,9 @@ namespace HarmonyLib
 		///
 		public MethodInfo Patch(MethodBase original, HarmonyMethod prefix = null, HarmonyMethod postfix = null, HarmonyMethod transpiler = null, HarmonyMethod finalizer = null)
 		{
+			if (!isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			var processor = CreateProcessor(original);
 			_ = processor.AddPrefix(prefix);
 			_ = processor.AddPostfix(postfix);
@@ -132,6 +167,7 @@ namespace HarmonyLib
 		/// 
 		public static MethodInfo ReversePatch(MethodBase original, HarmonyMethod standin, MethodInfo transpiler = null)
 		{
+
 			return PatchFunctions.ReversePatch(standin, original, transpiler);
 		}
 
@@ -166,6 +202,9 @@ namespace HarmonyLib
 		///
 		public void Unpatch(MethodBase original, HarmonyPatchType type, string harmonyID = null)
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			var processor = CreateProcessor(original);
 			_ = processor.Unpatch(type, harmonyID);
 		}
@@ -176,6 +215,9 @@ namespace HarmonyLib
 		///
 		public void Unpatch(MethodBase original, MethodInfo patch)
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			var processor = CreateProcessor(original);
 			_ = processor.Unpatch(patch);
 		}
@@ -186,6 +228,9 @@ namespace HarmonyLib
 		///
 		public static bool HasAnyPatches(string harmonyID)
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return GetAllPatchedMethods()
 				.Select(original => GetPatchInfo(original))
 				.Any(info => info.Owners.Contains(harmonyID));
@@ -197,6 +242,9 @@ namespace HarmonyLib
 		///
 		public static Patches GetPatchInfo(MethodBase method)
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return PatchProcessor.GetPatchInfo(method);
 		}
 
@@ -205,6 +253,9 @@ namespace HarmonyLib
 		///
 		public IEnumerable<MethodBase> GetPatchedMethods()
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return GetAllPatchedMethods()
 				.Where(original => GetPatchInfo(original).Owners.Contains(Id));
 		}
@@ -214,6 +265,9 @@ namespace HarmonyLib
 		///
 		public static IEnumerable<MethodBase> GetAllPatchedMethods()
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+
 			return PatchProcessor.GetAllPatchedMethods();
 		}
 
@@ -225,5 +279,39 @@ namespace HarmonyLib
 		{
 			return PatchProcessor.VersionInfo(out currentVersion);
 		}
+
+		/// <summary>Gets the global enable flag</summary>
+		/// 
+		///
+		public static bool isEnabled
+		{
+			get {
+				if (m_enabled == null)
+				{
+					/* If Harmony2 service is requested by any mod before the Harmony Mod
+						* starts (ie, m_enabled == null), this calls the Awareness interface
+						* to transfer Harmony1 state and patch Harmony1 to redirect here
+						* first
+						*
+						* If the Harmony Mod runs first, _it_ will decide when the Harmony
+						* Lib is enabled.
+						*/
+					m_enabled = false;
+					m_enabled = AppDomain.CurrentDomain.GetAssemblies()
+						.SelectMany(s => s.GetTypes())
+						.Where(p => typeof(IAwareness.IAmAware).IsAssignableFrom(p) && p.IsClass && !p.IsAbstract)
+						.Any((p) =>
+						{
+							(Activator.CreateInstance(p) as IAwareness.IAmAware).OnHarmonyAccessBeforeAwareness(true);
+							return true;
+						});
+
+					/* If Awareness not found, Harmony1 were not switched over. Disable Harmony2 */
+	}
+				return m_enabled.Value;
+			}
+			internal set { m_enabled = value; }
+		}
+
 	}
 }

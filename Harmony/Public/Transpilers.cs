@@ -22,6 +22,8 @@ namespace HarmonyLib
 				throw new ArgumentException("Unexpected null argument", nameof(from));
 			if (to == null)
 				throw new ArgumentException("Unexpected null argument", nameof(to));
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
 
 			foreach (var instruction in instructions)
 			{
@@ -47,6 +49,8 @@ namespace HarmonyLib
 				throw new ArgumentNullException(nameof(predicate));
 			if (action == null)
 				throw new ArgumentNullException(nameof(action));
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
 
 			return instructions.Select(instruction =>
 			{
