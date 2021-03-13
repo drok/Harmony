@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -101,6 +102,17 @@ namespace HarmonyLib
 		/// 
 		public Patch[] finalizers = new Patch[0];
 
+		[NonSerialized]
+		internal MethodBase original;
+
+		/// <summary>Constructor for targeted patchinfo's</summary>
+		/// <param name="_original">The target method to which the patches apply</param>
+		///
+		public PatchInfo(MethodBase _original)
+		{
+			original = _original;
+		}
+
 		/// <summary>Returns if any of the patches wants debugging turned on</summary>
 		/// 
 		public bool Debugging => prefixes.Any(p => p.debug) || postfixes.Any(p => p.debug) || transpilers.Any(p => p.debug) || finalizers.Any(p => p.debug);
@@ -109,16 +121,16 @@ namespace HarmonyLib
 		/// <param name="owner">An owner (Harmony ID)</param>
 		/// <param name="methods">The patch methods</param>
 		///
-		internal void AddPrefixes(string owner, params HarmonyMethod[] methods)
+		internal void AddPrefixes(string owner, MethodBase caller, params HarmonyMethod[] methods)
 		{
-			prefixes = Add(owner, methods, prefixes);
+			prefixes = Add(owner, methods, prefixes, original, caller, HarmonyPatchType.Prefix);
 		}
 
 		/// <summary>Adds a prefix</summary>
 		[Obsolete("This method only exists for backwards compatibility since the class is public.")]
 		public void AddPrefix(MethodInfo patch, string owner, int priority, string[] before, string[] after, bool debug)
 		{
-			AddPrefixes(owner, new HarmonyMethod(patch, priority, before, after, debug));
+			AddPrefixes(owner, new StackTrace().GetFrame(1).GetMethod(), new HarmonyMethod(patch, priority, before, after, debug));
 		}
 
 		/// <summary>Removes prefixes</summary>
@@ -126,23 +138,28 @@ namespace HarmonyLib
 		///
 		public void RemovePrefix(string owner)
 		{
-			prefixes = Remove(owner, prefixes);
+			RemovePrefix(new StackTrace().GetFrame(1).GetMethod(), owner);
+		}
+
+		internal void RemovePrefix(MethodBase caller, string owner)
+		{
+			prefixes = Remove(original, caller, owner, prefixes);
 		}
 
 		/// <summary>Adds postfixes</summary>
 		/// <param name="owner">An owner (Harmony ID)</param>
 		/// <param name="methods">The patch methods</param>
 		///
-		internal void AddPostfixes(string owner, params HarmonyMethod[] methods)
+		internal void AddPostfixes(string owner, MethodBase caller, params HarmonyMethod[] methods)
 		{
-			postfixes = Add(owner, methods, postfixes);
+			postfixes = Add(owner, methods, postfixes, original, caller, HarmonyPatchType.Postfix);
 		}
 
 		/// <summary>Adds a postfix</summary>
 		[Obsolete("This method only exists for backwards compatibility since the class is public.")]
 		public void AddPostfix(MethodInfo patch, string owner, int priority, string[] before, string[] after, bool debug)
 		{
-			AddPostfixes(owner, new HarmonyMethod(patch, priority, before, after, debug));
+			AddPostfixes(owner, new StackTrace().GetFrame(1).GetMethod(), new HarmonyMethod(patch, priority, before, after, debug));
 		}
 
 		/// <summary>Removes postfixes</summary>
@@ -150,23 +167,27 @@ namespace HarmonyLib
 		///
 		public void RemovePostfix(string owner)
 		{
-			postfixes = Remove(owner, postfixes);
+			RemovePostfix(new StackTrace().GetFrame(1).GetMethod(), owner);
 		}
 
+		internal void RemovePostfix(MethodBase caller, string owner)
+		{
+			postfixes = Remove(original, caller, owner, postfixes);
+		}
 		/// <summary>Adds transpilers</summary>
 		/// <param name="owner">An owner (Harmony ID)</param>
 		/// <param name="methods">The patch methods</param>
 		///
-		internal void AddTranspilers(string owner, params HarmonyMethod[] methods)
+		internal void AddTranspilers(string owner, MethodBase caller, params HarmonyMethod[] methods)
 		{
-			transpilers = Add(owner, methods, transpilers);
+			transpilers = Add(owner, methods, transpilers, original, caller, HarmonyPatchType.Transpiler);
 		}
 
 		/// <summary>Adds a transpiler</summary>
 		[Obsolete("This method only exists for backwards compatibility since the class is public.")]
 		public void AddTranspiler(MethodInfo patch, string owner, int priority, string[] before, string[] after, bool debug)
 		{
-			AddTranspilers(owner, new HarmonyMethod(patch, priority, before, after, debug));
+			AddTranspilers(owner, new StackTrace().GetFrame(1).GetMethod(), new HarmonyMethod(patch, priority, before, after, debug));
 		}
 
 		/// <summary>Removes transpilers</summary>
@@ -174,23 +195,28 @@ namespace HarmonyLib
 		///
 		public void RemoveTranspiler(string owner)
 		{
-			transpilers = Remove(owner, transpilers);
+			RemoveTranspiler(new StackTrace().GetFrame(1).GetMethod(), owner);
+		}
+
+		internal void RemoveTranspiler(MethodBase caller, string owner)
+		{
+			transpilers = Remove(original, caller, owner, transpilers);
 		}
 
 		/// <summary>Adds finalizers</summary>
 		/// <param name="owner">An owner (Harmony ID)</param>
 		/// <param name="methods">The patch methods</param>
 		///
-		internal void AddFinalizers(string owner, params HarmonyMethod[] methods)
+		internal void AddFinalizers(string owner, MethodBase caller, params HarmonyMethod[] methods)
 		{
-			finalizers = Add(owner, methods, finalizers);
+			finalizers = Add(owner, methods, finalizers, original, caller, HarmonyPatchType.Finalizer);
 		}
 
 		/// <summary>Adds a finalizer</summary>
 		[Obsolete("This method only exists for backwards compatibility since the class is public.")]
 		public void AddFinalizer(MethodInfo patch, string owner, int priority, string[] before, string[] after, bool debug)
 		{
-			AddFinalizers(owner, new HarmonyMethod(patch, priority, before, after, debug));
+			AddFinalizers(owner, new StackTrace().GetFrame(1).GetMethod(), new HarmonyMethod(patch, priority, before, after, debug));
 		}
 
 		/// <summary>Removes finalizers</summary>
@@ -198,7 +224,12 @@ namespace HarmonyLib
 		///
 		public void RemoveFinalizer(string owner)
 		{
-			finalizers = Remove(owner, finalizers);
+			RemoveFinalizer(new StackTrace().GetFrame(1).GetMethod(), owner);
+		}
+
+		internal void RemoveFinalizer(MethodBase caller, string owner)
+		{
+			finalizers = Remove(original, caller, owner, finalizers);
 		}
 
 		/// <summary>Removes a patch using its method</summary>
@@ -206,6 +237,16 @@ namespace HarmonyLib
 		///
 		public void RemovePatch(MethodInfo patch)
 		{
+			RemovePatch(new StackTrace().GetFrame(1).GetMethod(), patch);
+		}
+		internal void RemovePatch(MethodBase caller, MethodInfo patch)
+		{
+			if (Harmony.awarenessInstance != null && !Harmony.awarenessInstance.UnpatchACL(original, caller, patch)) {
+				return;
+			}
+
+			/* FIXME: This can be optimized to stop searching as soon as one match is found
+			 */
 			prefixes = prefixes.Where(p => p.PatchMethod != patch).ToArray();
 			postfixes = postfixes.Where(p => p.PatchMethod != patch).ToArray();
 			transpilers = transpilers.Where(p => p.PatchMethod != patch).ToArray();
@@ -216,8 +257,11 @@ namespace HarmonyLib
 		/// <param name="owner">The Harmony instance ID adding the new patches</param>
 		/// <param name="add">The patches to add</param>
 		/// <param name="current">The current patches</param>
+		/// <param name="original">The method this patch will be applied to</param>
+		/// <param name="caller">The method initiating the patch request</param>
+		/// <param name="type">The type of patch (prefix, postfix, etc)</param>
 		///
-		private static Patch[] Add(string owner, HarmonyMethod[] add, Patch[] current)
+		private static Patch[] Add(string owner, HarmonyMethod[] add, Patch[] current, MethodBase original, MethodBase caller, HarmonyPatchType type)
 		{
 			// avoid copy if no patch added
 			if (add.Length == 0)
@@ -228,7 +272,8 @@ namespace HarmonyLib
 			return current
 				.Concat(
 					add
-						.Where(method => method != null && method.method != null)
+						.Where(method => method != null && method.method != null &&
+							Harmony.awarenessInstance.PatchACL(original, caller, method, type))
 						.Select((method, i) => new Patch(method, i + initialIndex, owner))
 				)
 				.ToArray();
@@ -237,12 +282,14 @@ namespace HarmonyLib
 		/// <summary>Gets a list of patches with any from the given owner removed</summary>
 		/// <param name="owner">The owner of the methods, or <c>*</c> for all</param>
 		/// <param name="current">The current patches</param>
+		/// <param name="caller">The method requesting the removal (for ACL check)</param>
+		/// <param name="original">The Target method for this patch</param>
 		///
-		private static Patch[] Remove(string owner, Patch[] current)
+		private static Patch[] Remove(MethodBase original, MethodBase caller, string owner, Patch[] current)
 		{
-			return owner == "*"
-				? new Patch[0]
-				: current.Where(patch => patch.owner != owner).ToArray();
+			return current.Where(patch =>
+				(owner != "*" && patch.owner != owner) || !Harmony.awarenessInstance.UnpatchACL(original, caller, patch.PatchMethod)
+				).ToArray();
 		}
 	}
 
