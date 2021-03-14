@@ -27,6 +27,9 @@ namespace HarmonyLib
 		///
 		public PatchProcessor(Harmony instance, MethodBase original)
 		{
+			if (!Harmony.isEnabled)
+				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
+
 			this.instance = instance;
 			this.original = original;
 		}
@@ -127,8 +130,6 @@ namespace HarmonyLib
 		///
 		public MethodInfo Patch()
 		{
-			if (!Harmony.isEnabled)
-				throw new InvalidOperationException(Harmony.HARMONY_IS_DISABLED_MSG);
 			if (original == null)
 				throw new NullReferenceException($"Null method for {instance.Id}");
 
@@ -140,12 +141,12 @@ namespace HarmonyLib
 
 			lock (locker)
 			{
-				var patchInfo = HarmonySharedState.GetPatchInfo(original) ?? new PatchInfo();
+				var patchInfo = HarmonySharedState.GetPatchInfo(original) ?? new PatchInfo(original);
 
-				patchInfo.AddPrefixes(instance.Id, prefix);
-				patchInfo.AddPostfixes(instance.Id, postfix);
-				patchInfo.AddTranspilers(instance.Id, transpiler);
-				patchInfo.AddFinalizers(instance.Id, finalizer);
+				patchInfo.AddPrefixes(instance.Id, instance.caller, prefix);
+				patchInfo.AddPostfixes(instance.Id, instance.caller, postfix);
+				patchInfo.AddTranspilers(instance.Id, instance.caller, transpiler);
+				patchInfo.AddFinalizers(instance.Id, instance.caller, finalizer);
 
 				var replacement = PatchFunctions.UpdateWrapper(original, patchInfo);
 
@@ -164,16 +165,17 @@ namespace HarmonyLib
 			lock (locker)
 			{
 				var patchInfo = HarmonySharedState.GetPatchInfo(original);
-				if (patchInfo == null) patchInfo = new PatchInfo();
+
+				if (patchInfo is null) patchInfo = new PatchInfo(original);
 
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Prefix)
-					patchInfo.RemovePrefix(harmonyID);
+					patchInfo.RemovePrefix(instance.caller, harmonyID);
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Postfix)
-					patchInfo.RemovePostfix(harmonyID);
+					patchInfo.RemovePostfix(instance.caller, harmonyID);
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Transpiler)
-					patchInfo.RemoveTranspiler(harmonyID);
+					patchInfo.RemoveTranspiler(instance.caller, harmonyID);
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Finalizer)
-					patchInfo.RemoveFinalizer(harmonyID);
+					patchInfo.RemoveFinalizer(instance.caller, harmonyID);
 				_ = PatchFunctions.UpdateWrapper(original, patchInfo);
 
 				HarmonySharedState.UpdatePatchInfo(original, patchInfo);
@@ -190,9 +192,9 @@ namespace HarmonyLib
 			lock (locker)
 			{
 				var patchInfo = HarmonySharedState.GetPatchInfo(original);
-				if (patchInfo == null) patchInfo = new PatchInfo();
+				if (patchInfo is null) patchInfo = new PatchInfo(original);
 
-				patchInfo.RemovePatch(patch);
+				patchInfo.RemovePatch(instance.caller, patch);
 				_ = PatchFunctions.UpdateWrapper(original, patchInfo);
 
 				HarmonySharedState.UpdatePatchInfo(original, patchInfo);
