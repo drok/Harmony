@@ -140,13 +140,13 @@ namespace HarmonyLib
 
 			lock (locker)
 			{
-				var patchInfo = HarmonySharedState.GetPatchInfo(original);
-				if (patchInfo == null) patchInfo = new PatchInfo();
+				var patchInfo = HarmonySharedState.GetPatchInfo(original) ?? new PatchInfo();
 
-				PatchFunctions.AddPrefix(patchInfo, instance.Id, prefix);
-				PatchFunctions.AddPostfix(patchInfo, instance.Id, postfix);
-				PatchFunctions.AddTranspiler(patchInfo, instance.Id, transpiler);
-				PatchFunctions.AddFinalizer(patchInfo, instance.Id, finalizer);
+				patchInfo.AddPrefixes(instance.Id, prefix);
+				patchInfo.AddPostfixes(instance.Id, postfix);
+				patchInfo.AddTranspilers(instance.Id, transpiler);
+				patchInfo.AddFinalizers(instance.Id, finalizer);
+
 				var replacement = PatchFunctions.UpdateWrapper(original, patchInfo);
 
 				HarmonySharedState.UpdatePatchInfo(original, patchInfo);
@@ -167,13 +167,13 @@ namespace HarmonyLib
 				if (patchInfo == null) patchInfo = new PatchInfo();
 
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Prefix)
-					PatchFunctions.RemovePrefix(patchInfo, harmonyID);
+					patchInfo.RemovePrefix(harmonyID);
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Postfix)
-					PatchFunctions.RemovePostfix(patchInfo, harmonyID);
+					patchInfo.RemovePostfix(harmonyID);
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Transpiler)
-					PatchFunctions.RemoveTranspiler(patchInfo, harmonyID);
+					patchInfo.RemoveTranspiler(harmonyID);
 				if (type == HarmonyPatchType.All || type == HarmonyPatchType.Finalizer)
-					PatchFunctions.RemoveFinalizer(patchInfo, harmonyID);
+					patchInfo.RemoveFinalizer(harmonyID);
 				_ = PatchFunctions.UpdateWrapper(original, patchInfo);
 
 				HarmonySharedState.UpdatePatchInfo(original, patchInfo);
@@ -192,7 +192,7 @@ namespace HarmonyLib
 				var patchInfo = HarmonySharedState.GetPatchInfo(original);
 				if (patchInfo == null) patchInfo = new PatchInfo();
 
-				PatchFunctions.RemovePatch(patchInfo, patch);
+				patchInfo.RemovePatch(patch);
 				_ = PatchFunctions.UpdateWrapper(original, patchInfo);
 
 				HarmonySharedState.UpdatePatchInfo(original, patchInfo);
