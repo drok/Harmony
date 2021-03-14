@@ -9,7 +9,7 @@ namespace HarmonyLib
 {
 	internal static class HarmonySharedState
 	{
-		const string name = "CHSharedState"; // name differs from HarmonySharedState so a.GetName().Name.Contains(name) from Harmony 1.0.x does not trigger!
+		const string name = "HarmonySharedState";
 		static readonly object locker = new object();
 		internal const int internalVersion = 100;
 		internal static int actualVersion = -1;
