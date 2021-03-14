@@ -178,12 +178,12 @@ namespace HarmonyLib
 				{
 					try
 					{
-						var patchInfo = HarmonySharedState.GetPatchInfo(job.original) ?? new PatchInfo();
+						var patchInfo = HarmonySharedState.GetPatchInfo(job.original) ?? new PatchInfo(job.original);
 
-						patchInfo.AddPrefixes(instance.Id, job.prefixes.ToArray());
-						patchInfo.AddPostfixes(instance.Id, job.postfixes.ToArray());
-						patchInfo.AddTranspilers(instance.Id, job.transpilers.ToArray());
-						patchInfo.AddFinalizers(instance.Id, job.finalizers.ToArray());
+						patchInfo.AddPrefixes(instance.Id, instance.caller, job.prefixes.ToArray());
+						patchInfo.AddPostfixes(instance.Id, instance.caller, job.postfixes.ToArray());
+						patchInfo.AddTranspilers(instance.Id, instance.caller, job.transpilers.ToArray());
+						patchInfo.AddFinalizers(instance.Id, instance.caller, job.finalizers.ToArray());
 
 						replacement = PatchFunctions.UpdateWrapper(job.original, patchInfo);
 						HarmonySharedState.UpdatePatchInfo(job.original, patchInfo);

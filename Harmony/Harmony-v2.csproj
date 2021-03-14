@@ -69,7 +69,7 @@ Includes fix for https://github.com/pardeike/Harmony/issues/364</PackageReleaseN
 
 	<ItemGroup>
 	  <Reference Include="IAmAware">
-	    <HintPath>C:\References\IAmAware-0.0.0.0.dll</HintPath>
+	    <HintPath>C:\References\IAmAware-0.0.1.0.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 

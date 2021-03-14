@@ -82,7 +82,9 @@ namespace HarmonyLib
 			byte[] bytes;
 			lock (state) bytes = state.GetValueSafe(method);
 			if (bytes is null) return null;
-			return PatchInfoSerialization.Deserialize(bytes);
+			var patchInfo = PatchInfoSerialization.Deserialize(bytes);
+			patchInfo.original = method;
+			return patchInfo;
 		}
 
 		internal static IEnumerable<MethodBase> GetPatchedMethods()

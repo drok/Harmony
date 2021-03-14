@@ -24,6 +24,10 @@ namespace HarmonyLib
 
 		internal static bool? m_enabled;
 
+		internal readonly uint implementationVersion = 1;
+		internal static IAmAware awarenessInstance;
+		internal readonly MethodBase caller;
+
 #if CURRENT_LIB
 		internal static bool Harmony1Patched;
 
@@ -39,6 +43,10 @@ namespace HarmonyLib
 		/// <returns>A Harmony instance</returns>
 		///
 		public Harmony(string id)
+			: this(id, new StackTrace().GetFrame(1).GetMethod())
+		{
+		}
+		internal Harmony(string id, MethodBase _caller)
 		{
 			if (string.IsNullOrEmpty(id)) throw new ArgumentException($"{nameof(id)} cannot be null or empty");
 
@@ -79,6 +87,7 @@ namespace HarmonyLib
 			}
 
 			Id = id;
+			caller = _caller;
 		}
 
 		/// <summary>Searches the current assembly for Harmony annotations and uses them to create patches</summary>
@@ -88,8 +97,7 @@ namespace HarmonyLib
 			if (!isEnabled)
 				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
 
-			var method = new StackTrace().GetFrame(1).GetMethod();
-			var assembly = method.ReflectedType.Assembly;
+			var assembly = caller.ReflectedType.Assembly;
 			PatchAll(assembly);
 		}
 
@@ -180,7 +188,10 @@ namespace HarmonyLib
 		///
 		public void UnpatchAll(string harmonyID = null)
 		{
-			bool IDCheck(Patch patchInfo) => harmonyID is null || patchInfo.owner == harmonyID;
+			if (harmonyID is null)
+				throw new HarmonyUserException(this, "Prohibited global UnpatchAll()");
+
+			bool IDCheck(Patch patchInfo) => patchInfo.owner == harmonyID;
 
 			var originals = GetAllPatchedMethods().ToList(); // keep as is to avoid "Collection was modified"
 			foreach (var original in originals)
@@ -207,6 +218,8 @@ namespace HarmonyLib
 		{
 			if (!Harmony.isEnabled)
 				throw new InvalidOperationException(HARMONY_IS_DISABLED_MSG);
+			if (harmonyID is null || harmonyID == "*")
+				throw new HarmonyUserException(this, "Prohibited global UnpatchAll()");
 
 			var processor = CreateProcessor(original);
 			_ = processor.Unpatch(type, harmonyID);
@@ -305,7 +318,8 @@ namespace HarmonyLib
 						.Where(p => typeof(IAwareness.IAmAware).IsAssignableFrom(p) && p.IsClass && !p.IsAbstract)
 						.Any((p) =>
 						{
-							(Activator.CreateInstance(p) as IAwareness.IAmAware).OnHarmonyAccessBeforeAwareness(true);
+							awarenessInstance = Activator.CreateInstance(p) as IAmAware;
+							awarenessInstance.OnHarmonyAccessBeforeAwareness(true);
 							return true;
 						});
 

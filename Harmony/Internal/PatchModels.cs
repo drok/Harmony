@@ -12,13 +12,18 @@ namespace HarmonyLib
 	{
 		internal class Job
 		{
-			internal MethodBase original;
+			internal readonly MethodBase original;
 			internal T replacement;
 			internal List<HarmonyMethod> prefixes = new List<HarmonyMethod>();
 			internal List<HarmonyMethod> postfixes = new List<HarmonyMethod>();
 			internal List<HarmonyMethod> transpilers = new List<HarmonyMethod>();
 			internal List<HarmonyMethod> finalizers = new List<HarmonyMethod>();
 
+			private Job() { }
+			public Job(MethodBase _original)
+			{
+				original = _original;
+			}
 			internal void AddPatch(AttributePatch patch)
 			{
 				switch (patch.type)
@@ -51,7 +56,7 @@ namespace HarmonyLib
 			if (method is null) return null;
 			if (state.TryGetValue(method, out var job) is false)
 			{
-				job = new Job() { original = method };
+				job = new Job(method);
 				state[method] = job;
 			}
 			return job;
